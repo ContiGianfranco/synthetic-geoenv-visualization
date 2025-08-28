@@ -1,8 +1,6 @@
 import shader from "./shaders/shaders.wgsl?raw";
-import { TriangleMesh } from "./triangle_mesh";
 import { QuadMesh } from "./quad_mesh";
 import { mat4 } from "gl-matrix";
-import { Material } from "./material";
 import { object_types, RenderData } from "../model/definitions";
 
 export class Renderer {
@@ -19,7 +17,6 @@ export class Renderer {
     uniformBuffer!: GPUBuffer;
     pipeline!: GPURenderPipeline;
     frameGroupLayout!: GPUBindGroupLayout;
-    materialGroupLayout!: GPUBindGroupLayout;
     frameBindGroup!: GPUBindGroup;
 
     // Depth Stencil stuff
@@ -29,10 +26,7 @@ export class Renderer {
     depthStencilAttachment!: GPURenderPassDepthStencilAttachment;
 
     // Assets
-    triangleMesh!: TriangleMesh;
     quadMesh!: QuadMesh;
-    triangleMaterial!: Material;
-    quadMaterial!: Material;
     objectBuffer!: GPUBuffer;
 
 
@@ -40,7 +34,7 @@ export class Renderer {
         this.canvas = canvas;
     }
 
-   async Initialize() {
+    async Initialize() {
 
         await this.setupDevice();
 
@@ -134,28 +128,12 @@ export class Renderer {
 
         });
 
-        this.materialGroupLayout = this.device.createBindGroupLayout({
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    texture: {}
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.FRAGMENT,
-                    sampler: {}
-                }
-            ]
-
-        });
-
     }
 
     async makePipeline() {
         
         const pipelineLayout = this.device.createPipelineLayout({
-            bindGroupLayouts: [this.frameGroupLayout, this.materialGroupLayout]
+            bindGroupLayouts: [this.frameGroupLayout]
         });
     
         this.pipeline = this.device.createRenderPipeline({
@@ -188,15 +166,11 @@ export class Renderer {
     }
 
     async createAssets() {
-        this.triangleMesh = new TriangleMesh(this.device);
 
         var start = Date.now();
         this.quadMesh = new QuadMesh();
         await this.quadMesh.init(this.device);
         console.log('Time: ', Date.now() - start);
-
-        this.triangleMaterial = new Material();
-        this.quadMaterial = new Material();
 
         this.uniformBuffer = this.device.createBuffer({
             size: 64 * 2 + 16,
@@ -208,9 +182,6 @@ export class Renderer {
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
         };
         this.objectBuffer = this.device.createBuffer(modelBufferDescriptor);
-
-        await this.triangleMaterial.initialize(this.device, "./src/img/chat.jpg", this.materialGroupLayout);
-        await this.quadMaterial.initialize(this.device, "./src/img/floor.jpg", this.materialGroupLayout);
     }
 
     async makeBindGroup() {
@@ -282,7 +253,6 @@ export class Renderer {
         //Quads
         renderpass.setVertexBuffer(0, this.quadMesh.buffer);
         renderpass.setVertexBuffer(1, this.quadMesh.normalBuffer);
-        renderpass.setBindGroup(1, this.quadMaterial.bindGroup); 
         renderpass.draw(
             6*1023*1023, renderables.object_counts[object_types.QUAD],
             0, objects_drawn
