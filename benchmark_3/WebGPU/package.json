@@ -1,0 +1,23 @@
+{
+  "name": "webgpu",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.32",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.1"
+  },
+  "dependencies": {
+    "@types/node": "^22.10.2",
+    "@webgpu/types": "^0.1.51",
+    "geotiff": "^2.1.3",
+    "gl-matrix": "^3.4.3",
+    "jquery": "^3.7.1"
+  }
+}
