@@ -224,6 +224,7 @@ int main() {
 		}
 
 		lastFrame = std::chrono::high_resolution_clock::now();
+		glfwPollEvents();
 	}
 
 	glDeleteProgram(shader);\
